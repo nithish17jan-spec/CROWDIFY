@@ -63,7 +63,7 @@ export default function Login() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
             <Wifi className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-white">CrowdSense</span>
+          <span className="text-xl font-bold text-white">Crowdifyyy</span>
         </div>
         <div className="space-y-4">
           <h1 className="text-4xl font-bold leading-tight text-white">
@@ -81,7 +81,7 @@ export default function Login() {
             ))}
           </div>
         </div>
-        <p className="text-sm text-white/50">© 2026 CrowdSense IoT</p>
+        <p className="text-sm text-white/50">© 2026 Crowdifyyy</p>
       </div>
 
       {/* Right panel */}
@@ -92,7 +92,7 @@ export default function Login() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-hero">
               <Wifi className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold">CrowdSense</span>
+            <span className="text-xl font-bold">Crowdifyyy</span>
           </div>
 
           <div>

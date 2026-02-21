@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 
+import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
@@ -56,7 +57,7 @@ const AppContent = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={session ? "/dashboard" : "/login"} replace />} />
+      <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route path="/login" element={<AuthRoute session={session}><Login /></AuthRoute>} />
       <Route path="/signup" element={<AuthRoute session={session}><Signup /></AuthRoute>} />
       <Route path="/check" element={<CrowdCheck />} />
