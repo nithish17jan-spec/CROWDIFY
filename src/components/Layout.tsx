@@ -49,7 +49,7 @@ export default function Layout() {
               <Wifi className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className="text-base font-bold leading-none text-foreground">CrowdSense</p>
+              <p className="text-base font-bold leading-none text-foreground">Crowdifyyy</p>
               <p className="text-xs text-muted-foreground">IoT Crowd Monitor</p>
             </div>
           </NavLink>
