@@ -14,6 +14,7 @@ import Shops from "./pages/Shops";
 import Devices from "./pages/Devices";
 import Profile from "./pages/Profile";
 import CrowdCheck from "./pages/CrowdCheck";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 
@@ -33,7 +34,6 @@ const AppContent = () => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   useEffect(() => {
-    // Set up auth listener BEFORE getting session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -64,6 +64,7 @@ const AppContent = () => {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="shops" element={<Shops />} />
         <Route path="devices" element={<Devices />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="profile" element={<Profile />} />
       </Route>
       <Route path="*" element={<NotFound />} />
