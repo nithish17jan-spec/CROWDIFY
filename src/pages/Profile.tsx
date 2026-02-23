@@ -5,13 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Camera, Save } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { User, Mail, Camera, Save, Shield, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
+import { useUserRole } from "@/hooks/use-user-role";
 
 export default function Profile() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { roles, loading: rolesLoading } = useUserRole();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -43,11 +48,17 @@ export default function Profile() {
     );
   }
 
+  const roleLabels: Record<string, string> = {
+    admin: "Admin",
+    shop_owner: "Shop Owner",
+    viewer: "Viewer",
+  };
+
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Profile</h1>
-        <p className="text-sm text-muted-foreground">Manage your account information</p>
+        <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
       </div>
 
       <Card className="shadow-card">
@@ -64,6 +75,16 @@ export default function Profile() {
             <div className="text-center">
               <CardTitle>{fullName || "Your Name"}</CardTitle>
               <p className="text-sm text-muted-foreground">{email}</p>
+              {!rolesLoading && roles.length > 0 && (
+                <div className="mt-2 flex justify-center gap-1.5">
+                  {roles.map((role) => (
+                    <Badge key={role} variant="secondary" className="gap-1">
+                      <Shield className="h-3 w-3" />
+                      {roleLabels[role] || role}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -85,13 +106,7 @@ export default function Profile() {
             <Label htmlFor="email">Email Address</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="email"
-                className="pl-9"
-                value={email}
-                disabled
-                readOnly
-              />
+              <Input id="email" className="pl-9" value={email} disabled readOnly />
             </div>
             <p className="text-xs text-muted-foreground">Email cannot be changed after signup</p>
           </div>
@@ -105,6 +120,36 @@ export default function Profile() {
               <><Save className="mr-2 h-4 w-4" />Save Changes</>
             )}
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Theme Preferences */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="text-base">Appearance</CardTitle>
+          <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { value: "light" as const, icon: Sun, label: "Light" },
+              { value: "dark" as const, icon: Moon, label: "Dark" },
+              { value: "system" as const, icon: Monitor, label: "System" },
+            ]).map(({ value, icon: Icon, label }) => (
+              <button
+                key={value}
+                onClick={() => setTheme(value)}
+                className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                  theme === value
+                    ? "border-primary bg-primary/5 text-foreground"
+                    : "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-xs font-medium">{label}</span>
+              </button>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -288,8 +288,8 @@ void loop() {
                       <h3 className="truncate font-semibold">{device.device_name}</h3>
                       <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">{device.device_uid}</p>
                     </div>
-                    <span className={`ml-2 shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${online ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${online ? "bg-green-500 animate-pulse" : "bg-red-500"}`} />
+                    <span className={`ml-2 shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${online ? "bg-[hsl(var(--crowd-low))]/10 text-[hsl(var(--crowd-low))]" : "bg-[hsl(var(--crowd-high))]/10 text-[hsl(var(--crowd-high))]"}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${online ? "bg-[hsl(var(--crowd-low))] animate-pulse" : "bg-[hsl(var(--crowd-high))]"}`} />
                       {online ? "Online" : "Offline"}
                     </span>
                   </div>

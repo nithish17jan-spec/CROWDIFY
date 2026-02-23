@@ -81,10 +81,28 @@ Deno.serve(async (req) => {
       const crowdStatus =
         people_count <= 10 ? "Low" : people_count <= 25 ? "Medium" : "High";
 
-      await supabase
+      // Check if shop has manual override active
+      const { data: shop } = await supabase
         .from("shops")
-        .update({ crowd_count: people_count })
-        .eq("id", device.shop_id);
+        .select("manual_override")
+        .eq("id", device.shop_id)
+        .single();
+
+      // Only update crowd count if not in manual override mode
+      if (!shop?.manual_override) {
+        await supabase
+          .from("shops")
+          .update({ crowd_count: people_count })
+          .eq("id", device.shop_id);
+      }
+
+      // Always log to crowd_history for analytics
+      await supabase
+        .from("crowd_history")
+        .insert({
+          shop_id: device.shop_id,
+          crowd_count: people_count,
+        });
 
       return new Response(
         JSON.stringify({
@@ -93,6 +111,7 @@ Deno.serve(async (req) => {
           people_count,
           crowd_status: crowdStatus,
           shop_id: device.shop_id,
+          manual_override: shop?.manual_override || false,
           timestamp: new Date().toISOString(),
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

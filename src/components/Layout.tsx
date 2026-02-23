@@ -12,6 +12,10 @@ import {
   X,
   Wifi,
   ChevronDown,
+  BarChart3,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,17 +24,21 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/hooks/use-theme";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/shops", icon: Store, label: "Shops" },
-  { to: "/devices", icon: Cpu, label: "ESP32 Devices" },
+  { to: "/devices", icon: Cpu, label: "Devices" },
+  { to: "/analytics", icon: BarChart3, label: "Analytics" },
 ];
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -39,9 +47,9 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background transition-colors duration-300">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 border-b bg-card shadow-sm">
+      <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md shadow-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           {/* Logo */}
           <NavLink to="/dashboard" className="flex items-center gap-2">
@@ -61,9 +69,9 @@ export default function Layout() {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`
                 }
@@ -76,6 +84,32 @@ export default function Layout() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  {resolvedTheme === "dark" ? (
+                    <Moon className="h-4 w-4" />
+                  ) : (
+                    <Sun className="h-4 w-4" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="text-xs">Theme</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setTheme("light")} className={theme === "light" ? "bg-accent" : ""}>
+                  <Sun className="mr-2 h-4 w-4" /> Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")} className={theme === "dark" ? "bg-accent" : ""}>
+                  <Moon className="mr-2 h-4 w-4" /> Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")} className={theme === "system" ? "bg-accent" : ""}>
+                  <Monitor className="mr-2 h-4 w-4" /> System
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Profile dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2">
@@ -112,7 +146,7 @@ export default function Layout() {
 
         {/* Mobile Nav */}
         {mobileOpen && (
-          <nav className="border-t bg-card px-4 pb-4 pt-2 md:hidden">
+          <nav className="animate-in slide-in-from-top-2 border-t bg-card px-4 pb-4 pt-2 md:hidden">
             <div className="flex flex-col gap-1">
               {navItems.map(({ to, icon: Icon, label }) => (
                 <NavLink

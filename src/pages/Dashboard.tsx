@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Store, Cpu, Wifi, TrendingUp, RefreshCw } from "lucide-react";
+import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -12,6 +13,7 @@ interface Stats {
   onlineDevices: number;
   avgCrowdCount: number;
   topShop: { name: string; crowd_count: number } | null;
+  highCrowdShops: { name: string; crowd_count: number }[];
 }
 
 function getCrowdStatus(count: number) {
@@ -53,7 +55,9 @@ export default function Dashboard() {
       ? shops.reduce((max, s) => (s.crowd_count > max.crowd_count ? s : max), shops[0])
       : null;
 
-    setStats({ shopCount: shops.length, deviceCount: devices.length, onlineDevices, avgCrowdCount, topShop });
+    const highCrowdShops = shops.filter((s) => s.crowd_count > 25);
+
+    setStats({ shopCount: shops.length, deviceCount: devices.length, onlineDevices, avgCrowdCount, topShop, highCrowdShops });
     setLoading(false);
   };
 
@@ -87,8 +91,8 @@ export default function Dashboard() {
           title: "Devices Online",
           value: stats.onlineDevices,
           icon: Wifi,
-          color: "text-green-600",
-          bg: "bg-green-50",
+          color: "text-[hsl(var(--crowd-low))]",
+          bg: "bg-[hsl(var(--crowd-low))]/10",
           sub: "Active in last 5 min",
           link: "/devices",
         },
@@ -96,10 +100,10 @@ export default function Dashboard() {
           title: "Avg Crowd Count",
           value: stats.avgCrowdCount,
           icon: TrendingUp,
-          color: "text-orange-500",
-          bg: "bg-orange-50",
+          color: "text-[hsl(var(--crowd-medium))]",
+          bg: "bg-[hsl(var(--crowd-medium))]/10",
           sub: getCrowdStatus(stats.avgCrowdCount).label + " level",
-          link: "/shops",
+          link: "/analytics",
         },
       ]
     : [];
@@ -121,6 +125,19 @@ export default function Dashboard() {
           Refresh
         </Button>
       </div>
+
+      {/* High crowd warning */}
+      {stats && stats.highCrowdShops.length > 0 && (
+        <div className="flex items-start gap-3 rounded-lg border border-[hsl(var(--crowd-high))]/30 bg-[hsl(var(--crowd-high))]/5 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--crowd-high))]" />
+          <div>
+            <p className="font-semibold text-[hsl(var(--crowd-high))]">High Crowd Alert</p>
+            <p className="text-sm text-muted-foreground">
+              {stats.highCrowdShops.map((s) => s.name).join(", ")} {stats.highCrowdShops.length === 1 ? "has" : "have"} high crowd levels (&gt;25 people).
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Summary Cards */}
       {loading && !stats ? (
@@ -164,13 +181,31 @@ export default function Dashboard() {
               </div>
               <div className="text-right">
                 <p className="text-4xl font-bold text-primary">{stats.topShop.crowd_count}</p>
-                <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${getCrowdStatus(stats.topShop.crowd_count).cls}`}>
+                <Badge className={`mt-1 ${getCrowdStatus(stats.topShop.crowd_count).cls}`}>
                   {getCrowdStatus(stats.topShop.crowd_count).label}
-                </span>
+                </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Quick link to analytics */}
+      {stats && stats.shopCount > 0 && (
+        <Link to="/analytics">
+          <Card className="border-primary/20 shadow-card transition-all hover:shadow-card-hover">
+            <CardContent className="flex items-center gap-4 py-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                <BarChart3 className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold">View Analytics</h3>
+                <p className="text-sm text-muted-foreground">See crowd trends, compare shops, and view historical data</p>
+              </div>
+              <span className="text-primary">→</span>
+            </CardContent>
+          </Card>
+        </Link>
       )}
 
       {/* Quick actions */}
