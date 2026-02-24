@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle } from "lucide-react";
+import { Plus, Pencil, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +56,13 @@ export default function Shops() {
   const [editShop, setEditShop] = useState<Shop | null>(null);
   const [form, setForm] = useState({ name: "", location: "" });
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filteredShops = shops.filter(
+    (shop) =>
+      shop.name.toLowerCase().includes(search.toLowerCase()) ||
+      shop.location.toLowerCase().includes(search.toLowerCase())
+  );
 
   const fetchShops = useCallback(async () => {
     const { data, error } = await supabase
@@ -140,6 +147,19 @@ export default function Shops() {
         </div>
       </div>
 
+      {/* Search */}
+      {!loading && shops.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search shops by name or location..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
+
       {/* Grid */}
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -160,9 +180,21 @@ export default function Shops() {
             <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add Shop</Button>
           </CardContent>
         </Card>
+      ) : filteredShops.length === 0 ? (
+        <Card className="border-dashed shadow-none">
+          <CardContent className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+              <Search className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="font-semibold">No shops found</h3>
+              <p className="mt-1 text-sm text-muted-foreground">No shops match "{search}". Try a different search term.</p>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {shops.map((shop) => {
+          {filteredShops.map((shop) => {
             const status = getCrowdStatus(shop.crowd_count);
             return (
               <Card key={shop.id} className="shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
