@@ -12,7 +12,6 @@ import {
   X,
   Wifi,
   ChevronDown,
-  BarChart3,
   Sun,
   Moon,
   Monitor,
@@ -32,7 +31,6 @@ const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/shops", icon: Store, label: "Shops" },
   { to: "/devices", icon: Cpu, label: "Devices" },
-  { to: "/analytics", icon: BarChart3, label: "Analytics" },
 ];
 
 export default function Layout() {
