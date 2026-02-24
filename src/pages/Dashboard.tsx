@@ -114,7 +114,7 @@ export default function Dashboard() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">
-            Welcome back{userName ? `, ${userName}` : ""}! 👋
+            Welcome{userName ? `, ${userName}` : ""}! 👋
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Here's your crowd monitoring overview. Data refreshes every 10 seconds.
