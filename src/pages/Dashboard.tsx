@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle, BarChart3 } from "lucide-react";
+import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,7 +103,7 @@ export default function Dashboard() {
           color: "text-[hsl(var(--crowd-medium))]",
           bg: "bg-[hsl(var(--crowd-medium))]/10",
           sub: getCrowdStatus(stats.avgCrowdCount).label + " level",
-          link: "/analytics",
+          link: "/shops",
         },
       ]
     : [];
@@ -190,23 +190,7 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Quick link to analytics */}
-      {stats && stats.shopCount > 0 && (
-        <Link to="/analytics">
-          <Card className="border-primary/20 shadow-card transition-all hover:shadow-card-hover">
-            <CardContent className="flex items-center gap-4 py-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <BarChart3 className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">View Analytics</h3>
-                <p className="text-sm text-muted-foreground">See crowd trends, compare shops, and view historical data</p>
-              </div>
-              <span className="text-primary">→</span>
-            </CardContent>
-          </Card>
-        </Link>
-      )}
+
 
       {/* Quick actions */}
       {stats && stats.shopCount === 0 && (

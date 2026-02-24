@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle, Hand } from "lucide-react";
+import { Plus, Pencil, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
@@ -33,8 +33,6 @@ interface Shop {
   crowd_count: number;
   is_public: boolean;
   updated_at: string;
-  manual_override: boolean;
-  manual_count: number | null;
 }
 
 function getCrowdStatus(count: number) {
@@ -191,16 +189,9 @@ export default function Shops() {
                       <p className="text-4xl font-bold leading-none">{shop.crowd_count}</p>
                       <p className="mt-1 text-xs text-muted-foreground">people</p>
                     </div>
-                    <div className="ml-auto flex flex-col items-end gap-1">
-                      <div className="flex items-center gap-1.5">
-                        <div className={`h-2 w-2 animate-pulse rounded-full ${status.dot}`} />
-                        <span className="text-xs text-muted-foreground">Live</span>
-                      </div>
-                      {shop.manual_override && (
-                        <Badge variant="outline" className="gap-1 text-[10px] border-[hsl(var(--crowd-medium))] text-[hsl(var(--crowd-medium))]">
-                          <Hand className="h-2.5 w-2.5" />Manual
-                        </Badge>
-                      )}
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <div className={`h-2 w-2 animate-pulse rounded-full ${status.dot}`} />
+                      <span className="text-xs text-muted-foreground">Live</span>
                     </div>
                   </div>
                   {shop.crowd_count > 25 && (
@@ -215,26 +206,8 @@ export default function Shops() {
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(shop)}>
                     <Pencil className="mr-2 h-3.5 w-3.5" />Edit
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={async () => {
-                      const newOverride = !shop.manual_override;
-                      const count = newOverride ? shop.crowd_count : null;
-                      await supabase.from("shops").update({
-                        manual_override: newOverride,
-                        manual_count: count,
-                      }).eq("id", shop.id);
-                      toast.success(newOverride ? "Manual override enabled" : "Manual override disabled");
-                      fetchShops();
-                    }}
-                  >
-                    <Hand className="mr-2 h-3.5 w-3.5" />
-                    {shop.manual_override ? "Auto" : "Manual"}
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteId(shop.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
+                  <Button variant="outline" size="sm" className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteId(shop.id)}>
+                    <Trash2 className="mr-2 h-3.5 w-3.5" />Delete
                   </Button>
                 </CardFooter>
               </Card>
