@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle, S
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUserRole } from "@/hooks/use-user-role";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import {
@@ -57,6 +58,7 @@ export default function Shops() {
   const [form, setForm] = useState({ name: "", location: "" });
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+  const { canWrite } = useUserRole();
 
   const filteredShops = shops.filter(
     (shop) =>
@@ -140,10 +142,12 @@ export default function Shops() {
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button size="sm" onClick={openAdd}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Shop
-          </Button>
+          {canWrite && (
+            <Button size="sm" onClick={openAdd}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Shop
+            </Button>
+          )}
         </div>
       </div>
 
@@ -177,7 +181,7 @@ export default function Shops() {
               <h3 className="font-semibold">No shops yet</h3>
               <p className="mt-1 text-sm text-muted-foreground">Add your first shop to start tracking crowd levels.</p>
             </div>
-            <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add Shop</Button>
+            {canWrite && <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add Shop</Button>}
           </CardContent>
         </Card>
       ) : filteredShops.length === 0 ? (
@@ -234,14 +238,16 @@ export default function Shops() {
                   )}
                   <p className="mt-3 text-xs text-muted-foreground">Updated {timeAgo(shop.updated_at)}</p>
                 </CardContent>
-                <CardFooter className="gap-2 pt-0">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(shop)}>
-                    <Pencil className="mr-2 h-3.5 w-3.5" />Edit
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteId(shop.id)}>
-                    <Trash2 className="mr-2 h-3.5 w-3.5" />Delete
-                  </Button>
-                </CardFooter>
+                {canWrite && (
+                  <CardFooter className="gap-2 pt-0">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(shop)}>
+                      <Pencil className="mr-2 h-3.5 w-3.5" />Edit
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteId(shop.id)}>
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />Delete
+                    </Button>
+                  </CardFooter>
+                )}
               </Card>
             );
           })}
