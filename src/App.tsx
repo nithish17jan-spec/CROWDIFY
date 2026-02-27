@@ -9,6 +9,7 @@ import type { Session } from "@supabase/supabase-js";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Shops from "./pages/Shops";
 import Devices from "./pages/Devices";
@@ -19,8 +20,10 @@ import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
+function ProtectedRoute({ session, hasRole, children }: { session: Session | null; hasRole: boolean | null; children: React.ReactNode }) {
   if (!session) return <Navigate to="/login" replace />;
+  if (hasRole === null) return null; // still loading
+  if (!hasRole) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }
 
@@ -31,13 +34,31 @@ function AuthRoute({ session, children }: { session: Session | null; children: R
 
 const AppContent = () => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [hasRole, setHasRole] = useState<boolean | null>(null);
+
+  const checkRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", userId)
+      .limit(1);
+    setHasRole(!!(data && data.length > 0));
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user) {
+        checkRole(session.user.id);
+      } else {
+        setHasRole(null);
+      }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session?.user) {
+        checkRole(session.user.id);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -58,8 +79,9 @@ const AppContent = () => {
       <Route path="/" element={<Navigate to={session ? "/dashboard" : "/login"} replace />} />
       <Route path="/login" element={<AuthRoute session={session}><Login /></AuthRoute>} />
       <Route path="/signup" element={<AuthRoute session={session}><Signup /></AuthRoute>} />
+      <Route path="/onboarding" element={session ? (hasRole ? <Navigate to="/dashboard" replace /> : <Onboarding />) : <Navigate to="/login" replace />} />
       <Route path="/check" element={<CrowdCheck />} />
-      <Route path="/" element={<ProtectedRoute session={session}><Layout /></ProtectedRoute>}>
+      <Route path="/" element={<ProtectedRoute session={session} hasRole={hasRole}><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="shops" element={<Shops />} />
         <Route path="devices" element={<Devices />} />
