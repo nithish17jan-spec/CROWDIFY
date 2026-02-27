@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/use-user-role";
 import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
+  const { canWrite } = useUserRole();
 
   const fetchStats = async () => {
     setLoading(true);
@@ -193,24 +195,10 @@ export default function Dashboard() {
 
 
       {/* Quick actions */}
-      {stats && stats.shopCount === 0 && (
+      {canWrite && stats && stats.shopCount === 0 && (
         <Card className="border-dashed shadow-none">
           <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl gradient-hero">
-              <Store className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Add your first shop</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Start by adding a shop, then connect an ESP32 device.</p>
-            </div>
-            <div className="flex gap-3">
-              <Link to="/shops">
-                <Button>Add Shop</Button>
-              </Link>
-              <Link to="/devices">
-                <Button variant="outline">Add Device</Button>
-              </Link>
-            </div>
+...
           </CardContent>
         </Card>
       )}

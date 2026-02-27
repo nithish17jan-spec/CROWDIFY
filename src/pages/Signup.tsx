@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wifi, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { Wifi, Mail, Lock, User, Eye, EyeOff, Store, Users } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label as RadioLabel } from "@/components/ui/label";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -16,6 +18,7 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
+  const [role, setRole] = useState<"shop_owner" | "viewer">("shop_owner");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +34,7 @@ export default function Signup() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName, app_role: role } },
     });
     setLoading(false);
     if (error) {
@@ -136,6 +139,37 @@ export default function Signup() {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <Label>I am a</Label>
+              <RadioGroup value={role} onValueChange={(v) => setRole(v as "shop_owner" | "viewer")} className="grid grid-cols-2 gap-3">
+                <label
+                  className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                    role === "shop_owner"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/30"
+                  }`}
+                >
+                  <RadioGroupItem value="shop_owner" className="sr-only" />
+                  <Store className="h-6 w-6 text-primary" />
+                  <span className="text-sm font-medium">Shop Owner</span>
+                  <span className="text-xs text-muted-foreground text-center">Add & manage shops</span>
+                </label>
+                <label
+                  className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                    role === "viewer"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/30"
+                  }`}
+                >
+                  <RadioGroupItem value="viewer" className="sr-only" />
+                  <Users className="h-6 w-6 text-primary" />
+                  <span className="text-sm font-medium">Normal User</span>
+                  <span className="text-xs text-muted-foreground text-center">View crowd data</span>
+                </label>
+              </RadioGroup>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <div className="relative">
