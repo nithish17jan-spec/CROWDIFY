@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import { useUserRole } from "@/hooks/use-user-role";
 import Shops from "./pages/Shops";
 import Devices from "./pages/Devices";
 import Profile from "./pages/Profile";
@@ -19,6 +20,13 @@ import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
+
+function DevicesRoute() {
+  const { canWrite, loading } = useUserRole();
+  if (loading) return null;
+  if (!canWrite) return <Navigate to="/dashboard" replace />;
+  return <Devices />;
+}
 
 function ProtectedRoute({ session, hasRole, children }: { session: Session | null; hasRole: boolean | null; children: React.ReactNode }) {
   if (!session) return <Navigate to="/login" replace />;
@@ -84,7 +92,7 @@ const AppContent = () => {
       <Route path="/" element={<ProtectedRoute session={session} hasRole={hasRole}><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="shops" element={<Shops />} />
-        <Route path="devices" element={<Devices />} />
+        <Route path="devices" element={<DevicesRoute />} />
         <Route path="profile" element={<Profile />} />
       </Route>
       <Route path="*" element={<NotFound />} />
