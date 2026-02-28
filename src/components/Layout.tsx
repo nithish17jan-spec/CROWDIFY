@@ -26,17 +26,21 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/hooks/use-theme";
+import { useUserRole } from "@/hooks/use-user-role";
 
-const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/shops", icon: Store, label: "Shops" },
-  { to: "/devices", icon: Cpu, label: "Devices" },
+const allNavItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", ownerOnly: false },
+  { to: "/shops", icon: Store, label: "Shops", ownerOnly: false },
+  { to: "/devices", icon: Cpu, label: "Devices", ownerOnly: true },
 ];
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const { canWrite } = useUserRole();
+
+  const navItems = allNavItems.filter(item => !item.ownerOnly || canWrite);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
