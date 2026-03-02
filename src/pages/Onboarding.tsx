@@ -17,10 +17,12 @@ export default function Onboarding({ onRoleSet }: OnboardingProps) {
 
   const handleContinue = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Not authenticated");
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      await supabase.auth.signOut({ scope: "local" });
+      toast.error("Session expired, please sign in again");
       setLoading(false);
+      navigate("/login", { replace: true });
       return;
     }
 
