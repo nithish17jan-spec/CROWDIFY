@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Wifi, Store, Users } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-export default function Onboarding() {
+type OnboardingProps = {
+  onRoleSet?: () => void;
+};
+
+export default function Onboarding({ onRoleSet }: OnboardingProps) {
   const navigate = useNavigate();
   const [role, setRole] = useState<"shop_owner" | "viewer">("shop_owner");
   const [loading, setLoading] = useState(false);
@@ -25,11 +29,12 @@ export default function Onboarding() {
       .insert({ user_id: user.id, role });
 
     setLoading(false);
-    if (error) {
+    if (error && error.code !== "23505") {
       toast.error("Failed to set role. Please try again.");
     } else {
+      onRoleSet?.();
       toast.success("Welcome to CrowdSense!");
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
   };
 

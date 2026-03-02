@@ -87,7 +87,7 @@ const AppContent = () => {
       <Route path="/" element={<Navigate to={session ? "/dashboard" : "/login"} replace />} />
       <Route path="/login" element={<AuthRoute session={session}><Login /></AuthRoute>} />
       <Route path="/signup" element={<AuthRoute session={session}><Signup /></AuthRoute>} />
-      <Route path="/onboarding" element={session ? (hasRole ? <Navigate to="/dashboard" replace /> : <Onboarding />) : <Navigate to="/login" replace />} />
+      <Route path="/onboarding" element={session ? (hasRole ? <Navigate to="/dashboard" replace /> : <Onboarding onRoleSet={() => setHasRole(true)} />) : <Navigate to="/login" replace />} />
       <Route path="/check" element={<CrowdCheck />} />
       <Route path="/" element={<ProtectedRoute session={session} hasRole={hasRole}><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
