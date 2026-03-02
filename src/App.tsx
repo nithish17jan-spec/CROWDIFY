@@ -44,29 +44,44 @@ const AppContent = () => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [hasRole, setHasRole] = useState<boolean | null>(null);
 
-  const checkRole = async (userId: string) => {
-    const { data } = await supabase
+  const clearAuth = async () => {
+    await supabase.auth.signOut({ scope: "local" });
+    setSession(null);
+    setHasRole(null);
+  };
+
+  const syncAuthState = async (localSession: Session | null) => {
+    if (!localSession) {
+      setSession(null);
+      setHasRole(null);
+      return;
+    }
+    // Validate token server-side
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      await clearAuth();
+      return;
+    }
+    setSession(localSession);
+    // Check role
+    const { data, error: roleError } = await supabase
       .from("user_roles")
       .select("id")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .limit(1);
+    if (roleError && roleError.message?.includes("JWT")) {
+      await clearAuth();
+      return;
+    }
     setHasRole(!!(data && data.length > 0));
   };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        checkRole(session.user.id);
-      } else {
-        setHasRole(null);
-      }
+      syncAuthState(session);
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        checkRole(session.user.id);
-      }
+      syncAuthState(session);
     });
     return () => subscription.unsubscribe();
   }, []);
