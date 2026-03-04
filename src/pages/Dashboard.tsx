@@ -65,7 +65,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 10000);
+    const interval = setInterval(fetchStats, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -119,7 +119,7 @@ export default function Dashboard() {
             Welcome{userName ? `, ${userName}` : ""}! 👋
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Here's your crowd monitoring overview. Data refreshes every 10 seconds.
+            Here's your crowd monitoring overview. Data refreshes every 2 seconds.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => { fetchStats(); toast.success("Refreshed!"); }} disabled={loading}>
