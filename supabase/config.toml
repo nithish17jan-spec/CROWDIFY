@@ -1,1 +1,7 @@
 project_id = "rvojzpwkcecjrykhpfnb"
+
+[functions.esp32-update]
+verify_jwt = false
+
+[functions.esp32-status]
+verify_jwt = false
