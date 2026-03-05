@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Store,
   Cpu,
+  BarChart3,
   User,
   LogOut,
   Menu,
@@ -31,6 +32,7 @@ import { useUserRole } from "@/hooks/use-user-role";
 const allNavItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", ownerOnly: false },
   { to: "/shops", icon: Store, label: "Shops", ownerOnly: false },
+  { to: "/analytics", icon: BarChart3, label: "Analytics", ownerOnly: true },
   { to: "/devices", icon: Cpu, label: "Devices", ownerOnly: true },
 ];
 
