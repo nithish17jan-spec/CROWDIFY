@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,8 @@ interface Shop {
   crowd_count: number;
   is_public: boolean;
   updated_at: string;
+  user_id: string;
+  owner_name?: string;
 }
 
 function getCrowdStatus(count: number) {
@@ -71,8 +73,17 @@ export default function Shops() {
       .from("shops")
       .select("*")
       .order("created_at", { ascending: false });
-    if (error) toast.error("Failed to load shops");
-    else setShops(data || []);
+    if (error) { toast.error("Failed to load shops"); setLoading(false); return; }
+
+    // Fetch owner names
+    const userIds = [...new Set((data || []).map((s) => s.user_id))];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", userIds);
+
+    const nameMap = new Map((profiles || []).map((p) => [p.id, p.full_name || "Unknown"]));
+    setShops((data || []).map((s) => ({ ...s, owner_name: nameMap.get(s.user_id) || "Unknown" })));
     setLoading(false);
   }, []);
 
@@ -209,6 +220,10 @@ export default function Shops() {
                       <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3 shrink-0" />
                         <span className="truncate">{shop.location}</span>
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                        <User className="h-3 w-3 shrink-0" />
+                        <span className="truncate">by {shop.owner_name}</span>
                       </div>
                     </div>
                     <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${status.cls}`}>
