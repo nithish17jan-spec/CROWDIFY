@@ -105,7 +105,7 @@ export default function Shops() {
 
   useEffect(() => {
     fetchShops();
-    const interval = setInterval(fetchShops, 10000);
+    const interval = setInterval(fetchShops, 2000);
     return () => clearInterval(interval);
   }, [fetchShops]);
 
