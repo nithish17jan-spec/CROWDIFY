@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/use-user-role";
-import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle } from "lucide-react";
+import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle, Heart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
-  const { canWrite } = useUserRole();
+  const { canWrite, isViewer } = useUserRole();
 
   const fetchStats = async () => {
     setLoading(true);
@@ -69,7 +69,8 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const summaryCards = stats
+  // Cards differ for viewer vs owner
+  const ownerCards = stats
     ? [
         {
           title: "Total Shops",
@@ -110,6 +111,41 @@ export default function Dashboard() {
       ]
     : [];
 
+  const viewerCards = stats
+    ? [
+        {
+          title: "All Shops",
+          value: stats.shopCount,
+          icon: Store,
+          color: "text-primary",
+          bg: "bg-primary/10",
+          sub: "Available to browse",
+          link: "/shops",
+        },
+        {
+          title: "Favourite Shop",
+          value: stats.topShop?.name || "—",
+          icon: Heart,
+          color: "text-destructive",
+          bg: "bg-destructive/10",
+          sub: stats.topShop ? `${stats.topShop.crowd_count} people now` : "No shops yet",
+          link: "/shops",
+          isText: true,
+        },
+        {
+          title: "Avg Crowd Count",
+          value: stats.avgCrowdCount,
+          icon: TrendingUp,
+          color: "text-[hsl(var(--crowd-medium))]",
+          bg: "bg-[hsl(var(--crowd-medium))]/10",
+          sub: getCrowdStatus(stats.avgCrowdCount).label + " level",
+          link: "/shops",
+        },
+      ]
+    : [];
+
+  const summaryCards = isViewer ? viewerCards : ownerCards;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -130,10 +166,10 @@ export default function Dashboard() {
 
       {/* High crowd warning */}
       {stats && stats.highCrowdShops.length > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-[hsl(var(--crowd-high))]/30 bg-[hsl(var(--crowd-high))]/5 p-4">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--crowd-high))]" />
+        <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
           <div>
-            <p className="font-semibold text-[hsl(var(--crowd-high))]">High Crowd Alert</p>
+            <p className="font-semibold text-destructive">High Crowd Alert</p>
             <p className="text-sm text-muted-foreground">
               {stats.highCrowdShops.map((s) => s.name).join(", ")} {stats.highCrowdShops.length === 1 ? "has" : "have"} high crowd levels (&gt;25 people).
             </p>
@@ -144,12 +180,12 @@ export default function Dashboard() {
       {/* Summary Cards */}
       {loading && !stats ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: isViewer ? 3 : 4 }).map((_, i) => (
             <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid gap-4 sm:grid-cols-2 ${isViewer ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
           {summaryCards.map((card) => (
             <Link key={card.title} to={card.link}>
               <Card className="shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
@@ -160,7 +196,7 @@ export default function Dashboard() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">{card.value}</p>
+                  <p className={`font-bold ${"isText" in card && card.isText ? "text-lg truncate" : "text-3xl"}`}>{card.value}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{card.sub}</p>
                 </CardContent>
               </Card>
@@ -192,13 +228,20 @@ export default function Dashboard() {
         </Card>
       )}
 
-
-
       {/* Quick actions */}
       {canWrite && stats && stats.shopCount === 0 && (
         <Card className="border-dashed shadow-none">
           <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-...
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl gradient-hero">
+              <Store className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Get Started</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Add your first shop to start monitoring crowd levels.</p>
+            </div>
+            <Link to="/shops">
+              <Button>Add Your First Shop</Button>
+            </Link>
           </CardContent>
         </Card>
       )}

@@ -142,6 +142,7 @@ export type Database = {
           manual_count: number | null
           manual_override: boolean
           name: string
+          shop_type: Database["public"]["Enums"]["shop_type"]
           updated_at: string
           user_id: string
         }
@@ -154,6 +155,7 @@ export type Database = {
           manual_count?: number | null
           manual_override?: boolean
           name: string
+          shop_type?: Database["public"]["Enums"]["shop_type"]
           updated_at?: string
           user_id: string
         }
@@ -166,6 +168,7 @@ export type Database = {
           manual_count?: number | null
           manual_override?: boolean
           name?: string
+          shop_type?: Database["public"]["Enums"]["shop_type"]
           updated_at?: string
           user_id?: string
         }
@@ -208,6 +211,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "shop_owner" | "viewer"
+      shop_type:
+        | "restaurant"
+        | "bank"
+        | "super_market"
+        | "government_office"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -336,6 +345,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "shop_owner", "viewer"],
+      shop_type: [
+        "restaurant",
+        "bank",
+        "super_market",
+        "government_office",
+        "other",
+      ],
     },
   },
 } as const
