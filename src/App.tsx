@@ -14,7 +14,6 @@ import Dashboard from "./pages/Dashboard";
 import { useUserRole } from "@/hooks/use-user-role";
 import Shops from "./pages/Shops";
 import Devices from "./pages/Devices";
-import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import CrowdCheck from "./pages/CrowdCheck";
 import NotFound from "./pages/NotFound";
@@ -22,11 +21,11 @@ import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
-function OwnerOnlyRoute({ children }: { children: React.ReactNode }) {
+function DevicesRoute() {
   const { canWrite, loading } = useUserRole();
   if (loading) return null;
   if (!canWrite) return <Navigate to="/dashboard" replace />;
-  return <>{children}</>;
+  return <Devices />;
 }
 
 function ProtectedRoute({ session, hasRole, children }: { session: Session | null; hasRole: boolean | null; children: React.ReactNode }) {
@@ -108,8 +107,7 @@ const AppContent = () => {
       <Route path="/" element={<ProtectedRoute session={session} hasRole={hasRole}><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="shops" element={<Shops />} />
-        <Route path="devices" element={<OwnerOnlyRoute><Devices /></OwnerOnlyRoute>} />
-        <Route path="analytics" element={<OwnerOnlyRoute><Analytics /></OwnerOnlyRoute>} />
+        <Route path="devices" element={<DevicesRoute />} />
         <Route path="profile" element={<Profile />} />
       </Route>
       <Route path="*" element={<NotFound />} />
