@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Plus, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle,
-  Search, User, Info, Pencil, Building2, UtensilsCrossed, Landmark, Building, Clock, UserCheck
+  Search, User, Info, Pencil, Building2, UtensilsCrossed, Landmark, Building, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,16 +231,6 @@ export default function Shops() {
             </Button>
           );
         })}
-        {canWrite && (
-          <Button
-            variant={showMine ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setShowMine(!showMine); setTypeFilter(null); }}
-          >
-            <UserCheck className="mr-2 h-4 w-4" />
-            Created by Me
-          </Button>
-        )}
       </div>
 
       {/* Search */}
