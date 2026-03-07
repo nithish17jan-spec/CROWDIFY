@@ -231,16 +231,6 @@ export default function Shops() {
             </Button>
           );
         })}
-        {canWrite && (
-          <Button
-            variant={showMine ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setShowMine(!showMine); setTypeFilter(null); }}
-          >
-            <UserCheck className="mr-2 h-4 w-4" />
-            Created by Me
-          </Button>
-        )}
       </div>
 
       {/* Search */}
