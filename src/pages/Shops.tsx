@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Plus, Trash2, Store, RefreshCw, MapPin, Users, AlertTriangle,
-  Search, User, Info, Pencil, Building2, UtensilsCrossed, Landmark, Building
+  Search, User, Info, Pencil, Building2, UtensilsCrossed, Landmark, Building, Clock, UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,8 @@ interface Shop {
   updated_at: string;
   user_id: string;
   shop_type: string;
+  opening_time: string | null;
+  closing_time: string | null;
   owner_name?: string;
 }
 
@@ -58,6 +60,19 @@ function timeAgo(iso: string) {
   return `${Math.floor(diff / 3600)}h ago`;
 }
 
+function formatTime(time: string | null) {
+  if (!time) return "Not set";
+  try {
+    const [h, m] = time.split(":");
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const h12 = hour % 12 || 12;
+    return `${h12}:${m} ${ampm}`;
+  } catch {
+    return time;
+  }
+}
+
 export default function Shops() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,12 +80,11 @@ export default function Shops() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editShop, setEditShop] = useState<Shop | null>(null);
   const [infoShop, setInfoShop] = useState<Shop | null>(null);
-  const [form, setForm] = useState({ name: "", location: "", shop_type: "other" });
+  const [form, setForm] = useState({ name: "", location: "", shop_type: "other", opening_time: "", closing_time: "" });
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [crowdForm, setCrowdForm] = useState({ shopId: "", count: "" });
-  const [crowdDialogOpen, setCrowdDialogOpen] = useState(false);
+  const [showMine, setShowMine] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { canWrite } = useUserRole();
 
@@ -79,7 +93,8 @@ export default function Shops() {
       shop.name.toLowerCase().includes(search.toLowerCase()) ||
       shop.location.toLowerCase().includes(search.toLowerCase());
     const matchesType = !typeFilter || shop.shop_type === typeFilter;
-    return matchesSearch && matchesType;
+    const matchesMine = !showMine || shop.user_id === currentUserId;
+    return matchesSearch && matchesType && matchesMine;
   });
 
   const fetchShops = useCallback(async () => {
@@ -99,7 +114,12 @@ export default function Shops() {
       .in("id", userIds);
 
     const nameMap = new Map((profiles || []).map((p) => [p.id, p.full_name || "Unknown"]));
-    setShops((data || []).map((s) => ({ ...s, owner_name: nameMap.get(s.user_id) || "Unknown" })));
+    setShops((data || []).map((s) => ({
+      ...s,
+      opening_time: (s as any).opening_time ?? null,
+      closing_time: (s as any).closing_time ?? null,
+      owner_name: nameMap.get(s.user_id) || "Unknown",
+    })));
     setLoading(false);
   }, []);
 
@@ -111,13 +131,19 @@ export default function Shops() {
 
   const openAdd = () => {
     setEditShop(null);
-    setForm({ name: "", location: "", shop_type: "other" });
+    setForm({ name: "", location: "", shop_type: "other", opening_time: "", closing_time: "" });
     setDialogOpen(true);
   };
 
   const openEdit = (shop: Shop) => {
     setEditShop(shop);
-    setForm({ name: shop.name, location: shop.location, shop_type: shop.shop_type });
+    setForm({
+      name: shop.name,
+      location: shop.location,
+      shop_type: shop.shop_type,
+      opening_time: shop.opening_time || "",
+      closing_time: shop.closing_time || "",
+    });
     setDialogOpen(true);
   };
 
@@ -127,21 +153,21 @@ export default function Shops() {
       return;
     }
     setSaving(true);
+    const payload: any = {
+      name: form.name,
+      location: form.location,
+      shop_type: form.shop_type,
+      opening_time: form.opening_time || null,
+      closing_time: form.closing_time || null,
+    };
+
     if (editShop) {
-      const { error } = await supabase
-        .from("shops")
-        .update({ name: form.name, location: form.location, shop_type: form.shop_type as any })
-        .eq("id", editShop.id);
+      const { error } = await supabase.from("shops").update(payload).eq("id", editShop.id);
       if (error) toast.error("Failed to update shop");
       else { toast.success("Shop updated!"); fetchShops(); }
     } else {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("shops").insert({
-        name: form.name,
-        location: form.location,
-        shop_type: form.shop_type as any,
-        user_id: user!.id,
-      });
+      const { error } = await supabase.from("shops").insert({ ...payload, user_id: user!.id });
       if (error) toast.error("Failed to add shop");
       else { toast.success("Shop added!"); fetchShops(); }
     }
@@ -155,23 +181,6 @@ export default function Shops() {
     if (error) toast.error("Failed to delete shop");
     else { toast.success("Shop deleted"); fetchShops(); }
     setDeleteId(null);
-  };
-
-  const openCrowdUpdate = (shop: Shop) => {
-    setCrowdForm({ shopId: shop.id, count: String(shop.crowd_count) });
-    setCrowdDialogOpen(true);
-  };
-
-  const handleCrowdUpdate = async () => {
-    const count = parseInt(crowdForm.count);
-    if (isNaN(count) || count < 0) { toast.error("Enter a valid number"); return; }
-    const { error } = await supabase
-      .from("shops")
-      .update({ crowd_count: count, manual_override: true, manual_count: count })
-      .eq("id", crowdForm.shopId);
-    if (error) toast.error("Failed to update crowd data");
-    else { toast.success("Crowd data updated!"); fetchShops(); }
-    setCrowdDialogOpen(false);
   };
 
   const isOwner = (shop: Shop) => currentUserId === shop.user_id;
@@ -198,12 +207,12 @@ export default function Shops() {
         </div>
       </div>
 
-      {/* Category Filter Buttons */}
+      {/* Category Filter + Created by Me */}
       <div className="flex flex-wrap gap-2">
         <Button
-          variant={typeFilter === null ? "default" : "outline"}
+          variant={typeFilter === null && !showMine ? "default" : "outline"}
           size="sm"
-          onClick={() => setTypeFilter(null)}
+          onClick={() => { setTypeFilter(null); setShowMine(false); }}
         >
           <Store className="mr-2 h-4 w-4" />
           All
@@ -215,13 +224,23 @@ export default function Shops() {
               key={type.value}
               variant={typeFilter === type.value ? "default" : "outline"}
               size="sm"
-              onClick={() => setTypeFilter(typeFilter === type.value ? null : type.value)}
+              onClick={() => { setTypeFilter(typeFilter === type.value ? null : type.value); setShowMine(false); }}
             >
               <Icon className="mr-2 h-4 w-4" />
               {type.label}
             </Button>
           );
         })}
+        {canWrite && (
+          <Button
+            variant={showMine ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setShowMine(!showMine); setTypeFilter(null); }}
+          >
+            <UserCheck className="mr-2 h-4 w-4" />
+            Created by Me
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -317,18 +336,13 @@ export default function Shops() {
                   <p className="mt-3 text-xs text-muted-foreground">Updated {timeAgo(shop.updated_at)}</p>
                 </CardContent>
                 <CardFooter className="gap-2 pt-0">
-                  {/* Info button for everyone */}
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => setInfoShop(shop)}>
                     <Info className="mr-2 h-3.5 w-3.5" />Info
                   </Button>
-                  {/* Edit, Delete, Crowd only for owner */}
                   {isOwner(shop) && canWrite && (
                     <>
                       <Button variant="outline" size="sm" onClick={() => openEdit(shop)}>
                         <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => openCrowdUpdate(shop)}>
-                        <Users className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="outline"
@@ -375,6 +389,10 @@ export default function Shops() {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>Owner: {infoShop.owner_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>Timing: {formatTime(infoShop.opening_time)} – {formatTime(infoShop.closing_time)}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
@@ -426,6 +444,16 @@ export default function Shops() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Opening Time</Label>
+                <Input type="time" value={form.opening_time} onChange={(e) => setForm((f) => ({ ...f, opening_time: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Closing Time</Label>
+                <Input type="time" value={form.closing_time} onChange={(e) => setForm((f) => ({ ...f, closing_time: e.target.value }))} />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
@@ -434,33 +462,6 @@ export default function Shops() {
             <Button onClick={handleSave} disabled={saving}>
               {saving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : editShop ? "Save Changes" : "Add Shop"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Crowd Update Dialog */}
-      <Dialog open={crowdDialogOpen} onOpenChange={setCrowdDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Crowd Count</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>People Count</Label>
-              <Input
-                type="number"
-                min="0"
-                placeholder="Enter current crowd count"
-                value={crowdForm.count}
-                onChange={(e) => setCrowdForm((f) => ({ ...f, count: e.target.value }))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleCrowdUpdate}>Update</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

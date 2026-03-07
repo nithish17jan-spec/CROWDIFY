@@ -134,6 +134,7 @@ export type Database = {
       }
       shops: {
         Row: {
+          closing_time: string | null
           created_at: string
           crowd_count: number
           id: string
@@ -142,11 +143,13 @@ export type Database = {
           manual_count: number | null
           manual_override: boolean
           name: string
+          opening_time: string | null
           shop_type: Database["public"]["Enums"]["shop_type"]
           updated_at: string
           user_id: string
         }
         Insert: {
+          closing_time?: string | null
           created_at?: string
           crowd_count?: number
           id?: string
@@ -155,11 +158,13 @@ export type Database = {
           manual_count?: number | null
           manual_override?: boolean
           name: string
+          opening_time?: string | null
           shop_type?: Database["public"]["Enums"]["shop_type"]
           updated_at?: string
           user_id: string
         }
         Update: {
+          closing_time?: string | null
           created_at?: string
           crowd_count?: number
           id?: string
@@ -168,6 +173,7 @@ export type Database = {
           manual_count?: number | null
           manual_override?: boolean
           name?: string
+          opening_time?: string | null
           shop_type?: Database["public"]["Enums"]["shop_type"]
           updated_at?: string
           user_id?: string
