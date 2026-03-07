@@ -1,0 +1,2 @@
+ALTER TABLE public.shops ADD COLUMN opening_time TEXT DEFAULT NULL;
+ALTER TABLE public.shops ADD COLUMN closing_time TEXT DEFAULT NULL;
