@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/use-user-role";
-import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle, Heart } from "lucide-react";
+import { Store, Cpu, Wifi, TrendingUp, RefreshCw, AlertTriangle, MapPin, CalendarCheck, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+
+interface ShopItem {
+  id: string;
+  name: string;
+  location: string;
+  crowd_count: number;
+  shop_type: string;
+}
 
 interface Stats {
   shopCount: number;
@@ -15,6 +23,8 @@ interface Stats {
   avgCrowdCount: number;
   topShop: { name: string; crowd_count: number } | null;
   highCrowdShops: { name: string; crowd_count: number }[];
+  distinctDistricts: number;
+  allShops: ShopItem[];
 }
 
 function getCrowdStatus(count: number) {
@@ -38,28 +48,61 @@ export default function Dashboard() {
 
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-    const [shopsRes, devicesRes] = await Promise.all([
-      supabase.from("shops").select("id, name, crowd_count").eq("user_id", user.id),
-      supabase.from("esp32_devices").select("id, last_seen").eq("user_id", user.id),
-    ]);
+    if (isViewer) {
+      // Viewer: fetch all public shops
+      const { data: shops } = await supabase
+        .from("shops")
+        .select("id, name, location, crowd_count, shop_type")
+        .order("crowd_count", { ascending: false });
 
-    const shops = shopsRes.data || [];
-    const devices = devicesRes.data || [];
-    const onlineDevices = devices.filter(
-      (d) => d.last_seen && new Date(d.last_seen) > new Date(fiveMinAgo)
-    ).length;
+      const allShops = (shops || []) as ShopItem[];
+      const distinctDistricts = new Set(allShops.map((s) => s.location.trim().toLowerCase())).size;
+      const avgCrowdCount = allShops.length
+        ? Math.round(allShops.reduce((sum, s) => sum + (s.crowd_count || 0), 0) / allShops.length)
+        : 0;
+      const highCrowdShops = allShops.filter((s) => s.crowd_count > 25);
 
-    const avgCrowdCount = shops.length
-      ? Math.round(shops.reduce((sum, s) => sum + (s.crowd_count || 0), 0) / shops.length)
-      : 0;
+      setStats({
+        shopCount: allShops.length,
+        deviceCount: 0,
+        onlineDevices: 0,
+        avgCrowdCount,
+        topShop: allShops.length ? { name: allShops[0].name, crowd_count: allShops[0].crowd_count } : null,
+        highCrowdShops,
+        distinctDistricts,
+        allShops,
+      });
+    } else {
+      // Owner: fetch own shops + devices
+      const [shopsRes, devicesRes] = await Promise.all([
+        supabase.from("shops").select("id, name, location, crowd_count, shop_type").eq("user_id", user.id),
+        supabase.from("esp32_devices").select("id, last_seen").eq("user_id", user.id),
+      ]);
 
-    const topShop = shops.length
-      ? shops.reduce((max, s) => (s.crowd_count > max.crowd_count ? s : max), shops[0])
-      : null;
+      const shops = (shopsRes.data || []) as ShopItem[];
+      const devices = devicesRes.data || [];
+      const onlineDevices = devices.filter(
+        (d) => d.last_seen && new Date(d.last_seen) > new Date(fiveMinAgo)
+      ).length;
+      const avgCrowdCount = shops.length
+        ? Math.round(shops.reduce((sum, s) => sum + (s.crowd_count || 0), 0) / shops.length)
+        : 0;
+      const topShop = shops.length
+        ? shops.reduce((max, s) => (s.crowd_count > max.crowd_count ? s : max), shops[0])
+        : null;
+      const highCrowdShops = shops.filter((s) => s.crowd_count > 25);
 
-    const highCrowdShops = shops.filter((s) => s.crowd_count > 25);
-
-    setStats({ shopCount: shops.length, deviceCount: devices.length, onlineDevices, avgCrowdCount, topShop, highCrowdShops });
+      setStats({
+        shopCount: shops.length,
+        deviceCount: devices.length,
+        onlineDevices,
+        avgCrowdCount,
+        topShop,
+        highCrowdShops,
+        distinctDistricts: new Set(shops.map((s) => s.location.trim().toLowerCase())).size,
+        allShops: [...shops].sort((a, b) => b.crowd_count - a.crowd_count),
+      });
+    }
     setLoading(false);
   };
 
@@ -69,7 +112,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Cards differ for viewer vs owner
   const ownerCards = stats
     ? [
         {
@@ -114,21 +156,21 @@ export default function Dashboard() {
   const viewerCards = stats
     ? [
         {
-          title: "All Shops",
-          value: stats.shopCount,
-          icon: Store,
+          title: "District Shops",
+          value: stats.distinctDistricts,
+          icon: MapPin,
           color: "text-primary",
           bg: "bg-primary/10",
-          sub: "Available to browse",
+          sub: `${stats.shopCount} shops across districts`,
           link: "/shops",
         },
         {
-          title: "Favourite Shop",
-          value: stats.topShop?.name || "—",
-          icon: Heart,
-          color: "text-destructive",
-          bg: "bg-destructive/10",
-          sub: stats.topShop ? `${stats.topShop.crowd_count} people now` : "No shops yet",
+          title: "Today's Task",
+          value: "Check Crowds",
+          icon: CalendarCheck,
+          color: "text-[hsl(175,70%,38%)]",
+          bg: "bg-[hsl(175,70%,38%)]/10",
+          sub: new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
           link: "/shops",
           isText: true,
         },
@@ -205,8 +247,43 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Busiest Shop */}
-      {stats?.topShop && (
+      {/* Shops by Crowd (for viewers) */}
+      {isViewer && stats && stats.allShops.length > 0 && (
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="text-base">Shops by Crowd Level</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats.allShops.map((shop) => {
+                const status = getCrowdStatus(shop.crowd_count);
+                return (
+                  <Link key={shop.id} to="/shops">
+                    <div className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                          <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{shop.name}</p>
+                          <p className="text-xs text-muted-foreground">{shop.location}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold">{shop.crowd_count}</span>
+                        <Badge className={status.cls}>{status.label}</Badge>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Busiest Shop (for owners) */}
+      {!isViewer && stats?.topShop && (
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="text-base">Busiest Location</CardTitle>
