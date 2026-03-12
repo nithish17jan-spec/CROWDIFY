@@ -10,11 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from
+"@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
-} from "@/components/ui/dialog";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from
+"@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -35,8 +35,8 @@ interface Stats {
   deviceCount: number;
   onlineDevices: number;
   avgCrowdCount: number;
-  topShop: { name: string; crowd_count: number } | null;
-  highCrowdShops: { name: string; crowd_count: number }[];
+  topShop: {name: string;crowd_count: number;} | null;
+  highCrowdShops: {name: string;crowd_count: number;}[];
   distinctDistricts: number;
   allShops: ShopItem[];
   districts: string[];
@@ -71,12 +71,12 @@ export default function Dashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
-    const { data } = await supabase
-      .from("user_tasks")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("task_date", today)
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.
+    from("user_tasks").
+    select("*").
+    eq("user_id", user.id).
+    eq("task_date", today).
+    order("created_at", { ascending: false });
     setTasks((data || []) as UserTask[]);
   };
 
@@ -90,17 +90,17 @@ export default function Dashboard() {
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
     if (isViewer) {
-      const { data: shops } = await supabase
-        .from("shops")
-        .select("id, name, location, crowd_count, shop_type, district")
-        .order("crowd_count", { ascending: false });
+      const { data: shops } = await supabase.
+      from("shops").
+      select("id, name, location, crowd_count, shop_type, district").
+      order("crowd_count", { ascending: false });
 
       const allShops = (shops || []) as ShopItem[];
       const districts = [...new Set(allShops.map((s) => s.district || s.location.trim()).filter(Boolean))].sort();
       const distinctDistricts = districts.length;
-      const avgCrowdCount = allShops.length
-        ? Math.round(allShops.reduce((sum, s) => sum + (s.crowd_count || 0), 0) / allShops.length)
-        : 0;
+      const avgCrowdCount = allShops.length ?
+      Math.round(allShops.reduce((sum, s) => sum + (s.crowd_count || 0), 0) / allShops.length) :
+      0;
       const highCrowdShops = allShops.filter((s) => s.crowd_count > 25);
 
       setStats({
@@ -112,25 +112,25 @@ export default function Dashboard() {
         highCrowdShops,
         distinctDistricts,
         allShops,
-        districts,
+        districts
       });
     } else {
       const [shopsRes, devicesRes] = await Promise.all([
-        supabase.from("shops").select("id, name, location, crowd_count, shop_type, district").eq("user_id", user.id),
-        supabase.from("esp32_devices").select("id, last_seen").eq("user_id", user.id),
-      ]);
+      supabase.from("shops").select("id, name, location, crowd_count, shop_type, district").eq("user_id", user.id),
+      supabase.from("esp32_devices").select("id, last_seen").eq("user_id", user.id)]
+      );
 
       const shops = (shopsRes.data || []) as ShopItem[];
       const devices = devicesRes.data || [];
       const onlineDevices = devices.filter(
         (d) => d.last_seen && new Date(d.last_seen) > new Date(fiveMinAgo)
       ).length;
-      const avgCrowdCount = shops.length
-        ? Math.round(shops.reduce((sum, s) => sum + (s.crowd_count || 0), 0) / shops.length)
-        : 0;
-      const topShop = shops.length
-        ? shops.reduce((max, s) => (s.crowd_count > max.crowd_count ? s : max), shops[0])
-        : null;
+      const avgCrowdCount = shops.length ?
+      Math.round(shops.reduce((sum, s) => sum + (s.crowd_count || 0), 0) / shops.length) :
+      0;
+      const topShop = shops.length ?
+      shops.reduce((max, s) => s.crowd_count > max.crowd_count ? s : max, shops[0]) :
+      null;
       const highCrowdShops = shops.filter((s) => s.crowd_count > 25);
 
       setStats({
@@ -142,7 +142,7 @@ export default function Dashboard() {
         highCrowdShops,
         distinctDistricts: new Set(shops.map((s) => s.district || s.location.trim().toLowerCase())).size,
         allShops: [...shops].sort((a, b) => b.crowd_count - a.crowd_count),
-        districts: [],
+        districts: []
       });
     }
     setLoading(false);
@@ -151,7 +151,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchStats();
     fetchTasks();
-    const interval = setInterval(() => { fetchStats(); fetchTasks(); }, 2000);
+    const interval = setInterval(() => {fetchStats();fetchTasks();}, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -162,16 +162,16 @@ export default function Dashboard() {
     }
     setSavingTask(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setSavingTask(false); return; }
+    if (!user) {setSavingTask(false);return;}
 
     const { error } = await supabase.from("user_tasks").insert({
       user_id: user.id,
       shop_name: taskForm.shop_name,
       task_date: format(taskForm.task_date, "yyyy-MM-dd"),
-      note: taskForm.note,
+      note: taskForm.note
     });
-    if (error) toast.error("Failed to add task");
-    else { toast.success("Task added!"); fetchTasks(); }
+    if (error) toast.error("Failed to add task");else
+    {toast.success("Task added!");fetchTasks();}
     setSavingTask(false);
     setTaskDialogOpen(false);
     setTaskForm({ shop_name: "", task_date: undefined, note: "" });
@@ -192,69 +192,69 @@ export default function Dashboard() {
     return (s.district || s.location.trim()) === selectedDistrict;
   }) || [];
 
-  const ownerCards = stats
-    ? [
-        {
-          title: "Total Shops",
-          value: stats.shopCount,
-          icon: Store,
-          color: "text-primary",
-          bg: "bg-primary/10",
-          sub: "Managed by you",
-          link: "/shops",
-        },
-        {
-          title: "ESP32 Devices",
-          value: stats.deviceCount,
-          icon: Cpu,
-          color: "text-[hsl(175,70%,38%)]",
-          bg: "bg-[hsl(175,70%,38%)]/10",
-          sub: `${stats.onlineDevices} online`,
-          link: "/devices",
-        },
-        {
-          title: "Devices Online",
-          value: stats.onlineDevices,
-          icon: Wifi,
-          color: "text-[hsl(var(--crowd-low))]",
-          bg: "bg-[hsl(var(--crowd-low))]/10",
-          sub: "Active in last 5 min",
-          link: "/devices",
-        },
-        {
-          title: "Avg Crowd Count",
-          value: stats.avgCrowdCount,
-          icon: TrendingUp,
-          color: "text-[hsl(var(--crowd-medium))]",
-          bg: "bg-[hsl(var(--crowd-medium))]/10",
-          sub: getCrowdStatus(stats.avgCrowdCount).label + " level",
-          link: "/shops",
-        },
-      ]
-    : [];
+  const ownerCards = stats ?
+  [
+  {
+    title: "Total Shops",
+    value: stats.shopCount,
+    icon: Store,
+    color: "text-primary",
+    bg: "bg-primary/10",
+    sub: "Managed by you",
+    link: "/shops"
+  },
+  {
+    title: "ESP32 Devices",
+    value: stats.deviceCount,
+    icon: Cpu,
+    color: "text-[hsl(175,70%,38%)]",
+    bg: "bg-[hsl(175,70%,38%)]/10",
+    sub: `${stats.onlineDevices} online`,
+    link: "/devices"
+  },
+  {
+    title: "Devices Online",
+    value: stats.onlineDevices,
+    icon: Wifi,
+    color: "text-[hsl(var(--crowd-low))]",
+    bg: "bg-[hsl(var(--crowd-low))]/10",
+    sub: "Active in last 5 min",
+    link: "/devices"
+  },
+  {
+    title: "Avg Crowd Count",
+    value: stats.avgCrowdCount,
+    icon: TrendingUp,
+    color: "text-[hsl(var(--crowd-medium))]",
+    bg: "bg-[hsl(var(--crowd-medium))]/10",
+    sub: getCrowdStatus(stats.avgCrowdCount).label + " level",
+    link: "/shops"
+  }] :
 
-  const viewerCards = stats
-    ? [
-        {
-          title: "District Shops",
-          value: stats.distinctDistricts,
-          icon: MapPin,
-          color: "text-primary",
-          bg: "bg-primary/10",
-          sub: `${stats.shopCount} shops across districts`,
-          link: "/shops",
-        },
-        {
-          title: "Avg Crowd Count",
-          value: stats.avgCrowdCount,
-          icon: TrendingUp,
-          color: "text-[hsl(var(--crowd-medium))]",
-          bg: "bg-[hsl(var(--crowd-medium))]/10",
-          sub: getCrowdStatus(stats.avgCrowdCount).label + " level",
-          link: "/shops",
-        },
-      ]
-    : [];
+  [];
+
+  const viewerCards = stats ?
+  [
+  {
+    title: "District Shops",
+    value: stats.distinctDistricts,
+    icon: MapPin,
+    color: "text-primary",
+    bg: "bg-primary/10",
+    sub: `${stats.shopCount} shops across districts`,
+    link: "/shops"
+  },
+  {
+    title: "Avg Crowd Count",
+    value: stats.avgCrowdCount,
+    icon: TrendingUp,
+    color: "text-[hsl(var(--crowd-medium))]",
+    bg: "bg-[hsl(var(--crowd-medium))]/10",
+    sub: getCrowdStatus(stats.avgCrowdCount).label + " level",
+    link: "/shops"
+  }] :
+
+  [];
 
   const summaryCards = isViewer ? viewerCards : ownerCards;
 
@@ -267,18 +267,18 @@ export default function Dashboard() {
             Welcome{userName ? `, ${userName}` : ""}! 👋
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Here's your crowd monitoring overview. Data refreshes every 2 seconds.
+            Here's your CROWD MONITORING OVERVIEW
+         
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => { fetchStats(); toast.success("Refreshed!"); }} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={() => {fetchStats();toast.success("Refreshed!");}} disabled={loading}>
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
 
       {/* High crowd warning */}
-      {stats && stats.highCrowdShops.length > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+      {stats && stats.highCrowdShops.length > 0 && <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
           <div>
             <p className="font-semibold text-destructive">High Crowd Alert</p>
@@ -287,19 +287,19 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
-      )}
+      }
 
       {/* Summary Cards */}
-      {loading && !stats ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: isViewer ? 2 : 4 }).map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
-          ))}
-        </div>
-      ) : (
-        <div className={`grid gap-4 sm:grid-cols-2 ${isViewer ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
-          {summaryCards.map((card) => (
-            <Link key={card.title} to={card.link}>
+      {loading && !stats ?
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: isViewer ? 2 : 4 }).map((_, i) =>
+        <div key={i} className="h-32 animate-pulse rounded-xl bg-muted" />
+        )}
+        </div> :
+
+      <div className={`grid gap-4 sm:grid-cols-2 ${isViewer ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}>
+          {summaryCards.map((card) =>
+        <Link key={card.title} to={card.link}>
               <Card className="shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
@@ -313,13 +313,13 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </Link>
-          ))}
+        )}
         </div>
-      )}
+      }
 
       {/* Today's Tasks (for viewers) */}
-      {isViewer && (
-        <Card className="shadow-card">
+      {isViewer &&
+      <Card className="shadow-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
@@ -336,16 +336,16 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            {tasks.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No tasks for today. Add one to plan your visits!</p>
-            ) : (
-              <div className="space-y-2">
-                {tasks.map((task) => (
-                  <div key={task.id} className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50">
+            {tasks.length === 0 ?
+          <p className="text-sm text-muted-foreground text-center py-4">No tasks for today. Add one to plan your visits!</p> :
+
+          <div className="space-y-2">
+                {tasks.map((task) =>
+            <div key={task.id} className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50">
                     <button onClick={() => toggleTask(task)} className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors",
-                      task.completed ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"
-                    )}>
+                "flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors",
+                task.completed ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"
+              )}>
                       {task.completed && <Check className="h-3 w-3" />}
                     </button>
                     <div className="flex-1 min-w-0">
@@ -356,16 +356,16 @@ export default function Dashboard() {
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                ))}
-              </div>
             )}
+              </div>
+          }
           </CardContent>
         </Card>
-      )}
+      }
 
       {/* Shops by Crowd with location filter (for viewers) */}
-      {isViewer && stats && stats.allShops.length > 0 && (
-        <Card className="shadow-card">
+      {isViewer && stats && stats.allShops.length > 0 &&
+      <Card className="shadow-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Shops by Crowd Level</CardTitle>
             <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
@@ -375,21 +375,21 @@ export default function Dashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Locations</SelectItem>
-                {stats.districts.map((d) => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
+                {stats.districts.map((d) =>
+              <SelectItem key={d} value={d}>{d}</SelectItem>
+              )}
               </SelectContent>
             </Select>
           </CardHeader>
           <CardContent>
-            {filteredShops.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No shops in this location.</p>
-            ) : (
-              <div className="space-y-3">
+            {filteredShops.length === 0 ?
+          <p className="text-sm text-muted-foreground text-center py-4">No shops in this location.</p> :
+
+          <div className="space-y-3">
                 {filteredShops.map((shop) => {
-                  const status = getCrowdStatus(shop.crowd_count);
-                  return (
-                    <Link key={shop.id} to="/shops">
+              const status = getCrowdStatus(shop.crowd_count);
+              return (
+                <Link key={shop.id} to="/shops">
                       <div className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -405,18 +405,18 @@ export default function Dashboard() {
                           <Badge className={status.cls}>{status.label}</Badge>
                         </div>
                       </div>
-                    </Link>
-                  );
-                })}
+                    </Link>);
+
+            })}
               </div>
-            )}
+          }
           </CardContent>
         </Card>
-      )}
+      }
 
       {/* Busiest Shop (for owners) */}
-      {!isViewer && stats?.topShop && (
-        <Card className="shadow-card">
+      {!isViewer && stats?.topShop &&
+      <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="text-base">Busiest Location</CardTitle>
           </CardHeader>
@@ -435,11 +435,11 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-      )}
+      }
 
       {/* Quick actions */}
-      {canWrite && stats && stats.shopCount === 0 && (
-        <Card className="border-dashed shadow-none">
+      {canWrite && stats && stats.shopCount === 0 &&
+      <Card className="border-dashed shadow-none">
           <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl gradient-hero">
               <Store className="h-8 w-8 text-white" />
@@ -453,7 +453,7 @@ export default function Dashboard() {
             </Link>
           </CardContent>
         </Card>
-      )}
+      }
 
       {/* Add Task Dialog */}
       <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
@@ -467,8 +467,8 @@ export default function Dashboard() {
               <Input
                 placeholder="e.g. Visit Main Street Coffee"
                 value={taskForm.shop_name}
-                onChange={(e) => setTaskForm((f) => ({ ...f, shop_name: e.target.value }))}
-              />
+                onChange={(e) => setTaskForm((f) => ({ ...f, shop_name: e.target.value }))} />
+              
             </div>
             <div className="space-y-2">
               <Label>Date</Label>
@@ -476,8 +476,8 @@ export default function Dashboard() {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !taskForm.task_date && "text-muted-foreground")}
-                  >
+                    className={cn("w-full justify-start text-left font-normal", !taskForm.task_date && "text-muted-foreground")}>
+                    
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {taskForm.task_date ? format(taskForm.task_date, "PPP") : "Pick a date"}
                   </Button>
@@ -488,8 +488,8 @@ export default function Dashboard() {
                     selected={taskForm.task_date}
                     onSelect={(d) => setTaskForm((f) => ({ ...f, task_date: d }))}
                     initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                    className={cn("p-3 pointer-events-auto")} />
+                  
                 </PopoverContent>
               </Popover>
             </div>
@@ -498,8 +498,8 @@ export default function Dashboard() {
               <Input
                 placeholder="e.g. Check morning crowd levels"
                 value={taskForm.note}
-                onChange={(e) => setTaskForm((f) => ({ ...f, note: e.target.value }))}
-              />
+                onChange={(e) => setTaskForm((f) => ({ ...f, note: e.target.value }))} />
+              
             </div>
           </div>
           <DialogFooter>
@@ -512,6 +512,6 @@ export default function Dashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 }
