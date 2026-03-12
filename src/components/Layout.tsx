@@ -14,8 +14,8 @@ import {
   ChevronDown,
   Sun,
   Moon,
-  Monitor,
-} from "lucide-react";
+  Monitor } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,16 +23,16 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuLabel } from
+"@/components/ui/dropdown-menu";
 import { useTheme } from "@/hooks/use-theme";
 import { useUserRole } from "@/hooks/use-user-role";
 
 const allNavItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", ownerOnly: false },
-  { to: "/shops", icon: Store, label: "Shops", ownerOnly: false },
-  { to: "/devices", icon: Cpu, label: "Devices", ownerOnly: true },
-];
+{ to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", ownerOnly: false },
+{ to: "/shops", icon: Store, label: "Shops", ownerOnly: false },
+{ to: "/devices", icon: Cpu, label: "Devices", ownerOnly: true }];
+
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function Layout() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { canWrite } = useUserRole();
 
-  const navItems = allNavItems.filter(item => !item.ownerOnly || canWrite);
+  const navItems = allNavItems.filter((item) => !item.ownerOnly || canWrite);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -59,29 +59,29 @@ export default function Layout() {
               <Wifi className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className="text-base font-bold leading-none text-foreground">CrowdSense</p>
-              <p className="text-xs text-muted-foreground">IoT Crowd Monitor</p>
+              <p className="font-bold leading-none text-foreground text-center text-3xl">CROWDIFY</p>
+              <p className="text-muted-foreground text-sm">​  </p>
             </div>
           </NavLink>
 
           {/* Desktop Nav */}
           <nav className="hidden items-center gap-1 md:flex">
-            {navItems.map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                  }`
-                }
-              >
+            {navItems.map(({ to, icon: Icon, label }) =>
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+              `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+              isActive ?
+              "bg-primary text-primary-foreground shadow-sm" :
+              "text-muted-foreground hover:bg-accent hover:text-foreground"}`
+
+              }>
+              
                 <Icon className="h-4 w-4" />
                 {label}
               </NavLink>
-            ))}
+            )}
           </nav>
 
           {/* Right side */}
@@ -90,11 +90,11 @@ export default function Layout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9">
-                  {resolvedTheme === "dark" ? (
-                    <Moon className="h-4 w-4" />
-                  ) : (
-                    <Sun className="h-4 w-4" />
-                  )}
+                  {resolvedTheme === "dark" ?
+                  <Moon className="h-4 w-4" /> :
+
+                  <Sun className="h-4 w-4" />
+                  }
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -139,44 +139,44 @@ export default function Layout() {
               variant="ghost"
               size="icon"
               className="md:hidden"
-              onClick={() => setMobileOpen((o) => !o)}
-            >
+              onClick={() => setMobileOpen((o) => !o)}>
+              
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Nav */}
-        {mobileOpen && (
-          <nav className="animate-in slide-in-from-top-2 border-t bg-card px-4 pb-4 pt-2 md:hidden">
+        {mobileOpen &&
+        <nav className="animate-in slide-in-from-top-2 border-t bg-card px-4 pb-4 pt-2 md:hidden">
             <div className="flex flex-col gap-1">
-              {navItems.map(({ to, icon: Icon, label }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  onClick={() => setMobileOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                    }`
-                  }
-                >
+              {navItems.map(({ to, icon: Icon, label }) =>
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              isActive ?
+              "bg-primary text-primary-foreground" :
+              "text-muted-foreground hover:bg-accent hover:text-foreground"}`
+
+              }>
+              
                   <Icon className="h-4 w-4" />
                   {label}
                 </NavLink>
-              ))}
+            )}
               <button
-                onClick={handleSignOut}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10"
-              >
+              onClick={handleSignOut}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10">
+              
                 <LogOut className="h-4 w-4" />
                 Sign Out
               </button>
             </div>
           </nav>
-        )}
+        }
       </header>
 
       <main className="flex-1">
@@ -184,6 +184,6 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
-    </div>
-  );
+    </div>);
+
 }
