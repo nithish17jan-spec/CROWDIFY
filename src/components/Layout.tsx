@@ -10,7 +10,7 @@ import {
   LogOut,
   Menu,
   X,
-  Wifi,
+
   ChevronDown,
   Sun,
   Moon,
@@ -56,11 +56,11 @@ export default function Layout() {
           {/* Logo */}
           <NavLink to="/dashboard" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-hero">
-              <Wifi className="h-5 w-5 text-white" />
+              <Monitor className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className="font-bold leading-none text-foreground text-center text-3xl">CROWDIFY</p>
-              <p className="text-muted-foreground text-sm">​  </p>
+              <p className="font-bold leading-none text-foreground text-left text-2xl">CROWDIFY</p>
+              <p className="text-muted-foreground text-sm">​IOT MONITOR SENSOR   </p>
             </div>
           </NavLink>
 
