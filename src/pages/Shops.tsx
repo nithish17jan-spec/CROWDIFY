@@ -32,6 +32,9 @@ interface Shop {
   shop_type: string;
   opening_time: string | null;
   closing_time: string | null;
+  country: string | null;
+  state: string | null;
+  district: string | null;
   owner_name?: string;
 }
 
@@ -80,7 +83,11 @@ export default function Shops() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editShop, setEditShop] = useState<Shop | null>(null);
   const [infoShop, setInfoShop] = useState<Shop | null>(null);
-  const [form, setForm] = useState({ name: "", location: "", shop_type: "other", opening_time: "", closing_time: "" });
+  const [form, setForm] = useState({
+    name: "", location: "", shop_type: "other",
+    opening_time: "", closing_time: "",
+    country: "", state: "", district: "",
+  });
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
@@ -118,6 +125,9 @@ export default function Shops() {
       ...s,
       opening_time: (s as any).opening_time ?? null,
       closing_time: (s as any).closing_time ?? null,
+      country: (s as any).country ?? null,
+      state: (s as any).state ?? null,
+      district: (s as any).district ?? null,
       owner_name: nameMap.get(s.user_id) || "Unknown",
     })));
     setLoading(false);
@@ -131,7 +141,7 @@ export default function Shops() {
 
   const openAdd = () => {
     setEditShop(null);
-    setForm({ name: "", location: "", shop_type: "other", opening_time: "", closing_time: "" });
+    setForm({ name: "", location: "", shop_type: "other", opening_time: "", closing_time: "", country: "", state: "", district: "" });
     setDialogOpen(true);
   };
 
@@ -143,6 +153,9 @@ export default function Shops() {
       shop_type: shop.shop_type,
       opening_time: shop.opening_time || "",
       closing_time: shop.closing_time || "",
+      country: shop.country || "",
+      state: shop.state || "",
+      district: shop.district || "",
     });
     setDialogOpen(true);
   };
@@ -159,6 +172,9 @@ export default function Shops() {
       shop_type: form.shop_type,
       opening_time: form.opening_time || null,
       closing_time: form.closing_time || null,
+      country: form.country || null,
+      state: form.state || null,
+      district: form.district || null,
     };
 
     if (editShop) {
@@ -207,7 +223,7 @@ export default function Shops() {
         </div>
       </div>
 
-      {/* Category Filter + Created by Me */}
+      {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
         <Button
           variant={typeFilter === null && !showMine ? "default" : "outline"}
@@ -374,7 +390,7 @@ export default function Shops() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{infoShop.location}</span>
+                    <span>{[infoShop.district, infoShop.state, infoShop.country].filter(Boolean).join(", ") || infoShop.location}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
@@ -418,6 +434,20 @@ export default function Shops() {
             <div className="space-y-2">
               <Label>Place / Location</Label>
               <Input placeholder="e.g. 123 Main St, City" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label>Country</Label>
+                <Input placeholder="e.g. India" value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>State</Label>
+                <Input placeholder="e.g. Tamil Nadu" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>District</Label>
+                <Input placeholder="e.g. Chennai" value={form.district} onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))} />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Shop Type</Label>

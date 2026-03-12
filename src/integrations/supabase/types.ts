@@ -135,8 +135,10 @@ export type Database = {
       shops: {
         Row: {
           closing_time: string | null
+          country: string | null
           created_at: string
           crowd_count: number
+          district: string | null
           id: string
           is_public: boolean
           location: string
@@ -145,13 +147,16 @@ export type Database = {
           name: string
           opening_time: string | null
           shop_type: Database["public"]["Enums"]["shop_type"]
+          state: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           closing_time?: string | null
+          country?: string | null
           created_at?: string
           crowd_count?: number
+          district?: string | null
           id?: string
           is_public?: boolean
           location: string
@@ -160,13 +165,16 @@ export type Database = {
           name: string
           opening_time?: string | null
           shop_type?: Database["public"]["Enums"]["shop_type"]
+          state?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           closing_time?: string | null
+          country?: string | null
           created_at?: string
           crowd_count?: number
+          district?: string | null
           id?: string
           is_public?: boolean
           location?: string
@@ -175,6 +183,7 @@ export type Database = {
           name?: string
           opening_time?: string | null
           shop_type?: Database["public"]["Enums"]["shop_type"]
+          state?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -197,6 +206,36 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          note: string | null
+          shop_name: string
+          task_date: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          note?: string | null
+          shop_name: string
+          task_date: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          note?: string | null
+          shop_name?: string
+          task_date?: string
           user_id?: string
         }
         Relationships: []
