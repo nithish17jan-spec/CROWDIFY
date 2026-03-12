@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Wifi, Search, MapPin, Users, Clock, ArrowLeft } from "lucide-react";
+import { Wifi, Search, MapPin, Users, Clock, ArrowLeft, Globe, Map } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 interface ShopResult {
   id: string;
@@ -13,6 +15,9 @@ interface ShopResult {
   location: string;
   crowd_count: number;
   updated_at: string;
+  country: string | null;
+  state: string | null;
+  district: string | null;
 }
 
 function getCrowdStatus(count: number) {
@@ -40,21 +45,87 @@ export default function CrowdCheck() {
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Location filters
+  const [countries, setCountries] = useState<string[]>([]);
+  const [states, setStates] = useState<string[]>([]);
+  const [districts, setDistricts] = useState<string[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<string>("all");
+  const [selectedState, setSelectedState] = useState<string>("all");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
+  const [allShops, setAllShops] = useState<ShopResult[]>([]);
+
+  // Fetch all public shops for filter options
+  useEffect(() => {
+    const fetchLocations = async () => {
+      const { data } = await supabase
+        .from("shops")
+        .select("id, name, location, crowd_count, updated_at, country, state, district")
+        .eq("is_public", true);
+      const shops = (data || []) as ShopResult[];
+      setAllShops(shops);
+      const uniqueCountries = [...new Set(shops.map((s) => s.country).filter(Boolean))] as string[];
+      setCountries(uniqueCountries.sort());
+    };
+    fetchLocations();
+  }, []);
+
+  // Update states when country changes
+  useEffect(() => {
+    if (selectedCountry === "all") {
+      setStates([]);
+      setSelectedState("all");
+      setDistricts([]);
+      setSelectedDistrict("all");
+      return;
+    }
+    const filteredStates = [...new Set(
+      allShops.filter((s) => s.country === selectedCountry).map((s) => s.state).filter(Boolean)
+    )] as string[];
+    setStates(filteredStates.sort());
+    setSelectedState("all");
+    setDistricts([]);
+    setSelectedDistrict("all");
+  }, [selectedCountry, allShops]);
+
+  // Update districts when state changes
+  useEffect(() => {
+    if (selectedState === "all") {
+      const filteredDistricts = selectedCountry !== "all"
+        ? [...new Set(allShops.filter((s) => s.country === selectedCountry).map((s) => s.district).filter(Boolean))] as string[]
+        : [];
+      setDistricts(filteredDistricts.sort());
+      setSelectedDistrict("all");
+      return;
+    }
+    const filteredDistricts = [...new Set(
+      allShops
+        .filter((s) => s.country === selectedCountry && s.state === selectedState)
+        .map((s) => s.district)
+        .filter(Boolean)
+    )] as string[];
+    setDistricts(filteredDistricts.sort());
+    setSelectedDistrict("all");
+  }, [selectedState, selectedCountry, allShops]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
     setLoading(true);
     setSearched(true);
 
-    const { data } = await supabase
+    let q = supabase
       .from("shops")
-      .select("id, name, location, crowd_count, updated_at")
-      .eq("is_public", true)
-      .or(`name.ilike.%${query}%,location.ilike.%${query}%`)
-      .order("crowd_count", { ascending: false })
-      .limit(20);
+      .select("id, name, location, crowd_count, updated_at, country, state, district")
+      .eq("is_public", true);
 
-    setResults(data || []);
+    if (query.trim()) {
+      q = q.or(`name.ilike.%${query}%,location.ilike.%${query}%`);
+    }
+    if (selectedCountry !== "all") q = q.eq("country", selectedCountry);
+    if (selectedState !== "all") q = q.eq("state", selectedState);
+    if (selectedDistrict !== "all") q = q.eq("district", selectedDistrict);
+
+    const { data } = await q.order("crowd_count", { ascending: false }).limit(20);
+    setResults((data || []) as ShopResult[]);
     setLoading(false);
   };
 
@@ -91,14 +162,68 @@ export default function CrowdCheck() {
         </div>
       </div>
 
+      {/* Location Filters */}
+      <div className="mx-auto max-w-3xl px-6 py-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Globe className="h-3 w-3" /> Country
+            </label>
+            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Countries" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Countries</SelectItem>
+                {countries.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Map className="h-3 w-3" /> State
+            </label>
+            <Select value={selectedState} onValueChange={setSelectedState} disabled={selectedCountry === "all"}>
+              <SelectTrigger>
+                <SelectValue placeholder="All States" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All States</SelectItem>
+                {states.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <MapPin className="h-3 w-3" /> District
+            </label>
+            <Select value={selectedDistrict} onValueChange={setSelectedDistrict} disabled={selectedCountry === "all"}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Districts" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Districts</SelectItem>
+                {districts.map((d) => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
       {/* Results */}
-      <div className="mx-auto max-w-3xl px-6 py-8">
+      <div className="mx-auto max-w-3xl px-6 py-4">
         {!searched ? (
           <div className="space-y-4 text-center">
             <h2 className="text-lg font-semibold">How it works</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {[
-                { emoji: "🔍", title: "Search", desc: "Type a shop name or location above" },
+                { emoji: "🔍", title: "Search", desc: "Type a shop name or filter by location" },
                 { emoji: "📊", title: "View Count", desc: "See the live crowd count and status" },
                 { emoji: "✅", title: "Decide", desc: "Plan your visit at the right time" },
               ].map((step) => (
@@ -123,7 +248,7 @@ export default function CrowdCheck() {
             <CardContent className="py-12 text-center">
               <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground/40" />
               <h3 className="font-semibold">No results found</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Try a different shop name or location</p>
+              <p className="mt-1 text-sm text-muted-foreground">Try a different shop name or location filter</p>
             </CardContent>
           </Card>
         ) : (
@@ -139,7 +264,7 @@ export default function CrowdCheck() {
                         <CardTitle className="text-lg">{shop.name}</CardTitle>
                         <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                           <MapPin className="h-3.5 w-3.5" />
-                          <span>{shop.location}</span>
+                          <span>{[shop.district, shop.state, shop.country].filter(Boolean).join(", ") || shop.location}</span>
                         </div>
                       </div>
                       <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${status.cls}`}>
