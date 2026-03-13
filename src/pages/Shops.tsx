@@ -223,6 +223,20 @@ export default function Shops() {
         </div>
       </div>
 
+      {/* Admin Customization Bar */}
+      {isAdmin && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <Store className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-primary">Admin Panel</p>
+            <p className="text-xs text-muted-foreground">You have full control over all shops as the app creator</p>
+          </div>
+          <Badge className="bg-primary text-primary-foreground">Creator</Badge>
+        </div>
+      )}
+
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
         <Button
