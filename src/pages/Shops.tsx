@@ -93,7 +93,7 @@ export default function Shops() {
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [showMine, setShowMine] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { canWrite } = useUserRole();
+  const { canWrite, isAdmin } = useUserRole();
 
   const filteredShops = shops.filter((shop) => {
     const matchesSearch =
