@@ -6,6 +6,7 @@ import {
   Search, User, Info, Pencil, Building2, UtensilsCrossed, Landmark, Building, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUserRole } from "@/hooks/use-user-role";
@@ -93,7 +94,7 @@ export default function Shops() {
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [showMine, setShowMine] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { canWrite } = useUserRole();
+  const { canWrite, isAdmin } = useUserRole();
 
   const filteredShops = shops.filter((shop) => {
     const matchesSearch =
@@ -222,6 +223,20 @@ export default function Shops() {
           )}
         </div>
       </div>
+
+      {/* Admin Customization Bar */}
+      {isAdmin && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <Store className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-primary">Admin Panel</p>
+            <p className="text-xs text-muted-foreground">You have full control over all shops as the app creator</p>
+          </div>
+          <Badge className="bg-primary text-primary-foreground">Creator</Badge>
+        </div>
+      )}
 
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
